@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة سيرفر ستي لايف | City Life RP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+    <!-- شاشة تسجيل الدخول -->
+    <div id="loginModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <div class="text-center mb-6">
+                <i class="fa-brands fa-discord text-indigo-500 text-5xl mb-3"></i>
+                <h2 class="text-2xl font-bold text-white">سيرفر ستي لايف</h2>
+                <p class="text-slate-400 text-sm mt-1">تسجيل دخول كادر الإدارة</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-slate-300 text-sm mb-1">الاسم / أيدي الديسكورد</label>
+                    <input type="text" id="adminName" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500" placeholder="مثال: Ahmed_99">
+                </div>
+                <div>
+                    <label class="block text-slate-300 text-sm mb-1">الرتبة الإدارية</label>
+                    <select id="adminRole" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500">
+                        <option value="مالك السيرفر (Owner)">مالك السيرفر (Owner)</option>
+                        <option value="إدارة عليا (High Staff)">إدارة عليا (High Staff)</option>
+                        <option value="مشرف (Moderator)">مشرف (Moderator)</option>
+                        <option value="دعم فني (Support)">دعم فني (Support)</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition duration-200">
+                    دخول اللوحة
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- الواجهة الرئيسية -->
+    <div id="mainDashboard" class="hidden min-h-screen flex flex-col">
+        
+        <!-- الشريط العلوي -->
+        <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-xl font-bold">CL</div>
+                <div>
+                    <h1 class="font-bold text-lg leading-none">ستي لايف RP</h1>
+                    <span class="text-xs text-slate-400">نظام إدارة السيرفر</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 bg-slate-900/60 px-4 py-2 rounded-xl border border-slate-700">
+                <i class="fa-solid fa-user-shield text-indigo-400 text-xl"></i>
+                <div>
+                    <p id="userDisplayName" class="text-sm font-bold text-white"></p>
+                    <p id="userDisplayRole" class="text-xs text-indigo-400"></p>
+                </div>
+            </div>
+        </header>
+
+        <!-- المحتوى -->
+        <main class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-8">
+
+            <!-- لوحة المالك والترقيات والصلاحيات -->
+            <section id="ownerPanel" class="bg-slate-800/80 border border-amber-500/30 rounded-2xl p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 bg-amber-500 text-slate-950 font-bold text-xs px-3 py-1 rounded-br-lg">
+                    خاص بالمالك والصلاحيات العليا
+                </div>
+                <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-amber-400">
+                    <i class="fa-solid fa-crown"></i> قائمة أوامر التحكم والتعديل
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
+                        <h3 class="font-bold mb-2 text-sm text-slate-300">إضافة قانون جديد</h3>
+                        <input type="text" id="newRuleInput" placeholder="اكتب القانون..." class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white mb-2">
+                        <button onclick="addRule()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-1.5 rounded text-sm transition">نشر القانون</button>
+                    </div>
+
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
+                        <h3 class="font-bold mb-2 text-sm text-slate-300">إدارة صلاحية إداري</h3>
+                        <input type="text" id="permAdminName" placeholder="اسم الإداري..." class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white mb-2">
+                        <button onclick="grantPermission()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1.5 rounded text-sm transition">منح الصلاحيات</button>
+                    </div>
+
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
+                        <h3 class="font-bold mb-2 text-sm text-slate-300">تحديث الهيكل الإداري</h3>
+                        <input type="text" id="newRoleTitle" placeholder="اسم الرتبة الجديدة..." class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white mb-2">
+                        <button onclick="addNewRole()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 rounded text-sm transition">إضافة رتبة</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- قوانين السيرفر -->
+            <section class="bg-slate-800 border border-slate-700 rounded-2xl p-6">
+                <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-indigo-400">
+                    <i class="fa-solid fa-scroll"></i> قوانين وإرشادات السيرفر
+                </h2>
+                <ul id="rulesList" class="list-disc list-inside space-y-2 text-slate-300 text-sm">
+                    <li>التزام الأدب والاحترام التام داخل التكتات والتشات العام.</li>
+                    <li>يمنع منعاً باتاً تسجيل تكت وهمي لغرض الترقية.</li>
+                </ul>
+            </section>
+
+            <!-- التكتات والأعمال -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- جدول تسجيل التكتات للترقية -->
+                <section class="bg-slate-800 border border-slate-700 rounded-2xl p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold flex items-center gap-2 text-emerald-400">
+                            <i class="fa-solid fa-ticket"></i> سجل التكتات (للترقيات)
+                        </h2>
+                        <span id="ticketCount" class="bg-emerald-500/10 text-emerald-400 text-xs px-2.5 py-1 rounded-full font-bold border border-emerald-500/20">0 تكت</span>
+                    </div>
+                    
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 mb-4 space-y-3">
+                        <input type="text" id="ticketUser" placeholder="اسم العضو صاحب التكت..." class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white">
+                        <select id="ticketType" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white">
+                            <option value="شكوى (Report)">شكوى (Report)</option>
+                            <option value="استفسار (Support)">استفسار (Support)</option>
+                            <option value="تعويض (Refund)">تعويض (Refund)</option>
+                        </select>
+                        <button onclick="addTicket()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded text-sm transition">تسجيل تكت جديد</button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-right text-slate-300">
+                            <thead class="bg-slate-900 text-slate-400 text-xs">
+                                <tr>
+                                    <th class="p-2.5">الإداري</th>
+                                    <th class="p-2.5">العضو</th>
+                                    <th class="p-2.5">النوع</th>
+                                    <th class="p-2.5">الوقت</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ticketsTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- جدول أعمال الإدارة -->
+                <section class="bg-slate-800 border border-slate-700 rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-blue-400">
+                        <i class="fa-solid fa-list-check"></i> جدول أعمال ومهمات الإدارة
+                    </h2>
+                    
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 mb-4 space-y-3">
+                        <input type="text" id="taskTitle" placeholder="عنوان المهمة..." class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white">
+                        <button onclick="addTask()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-sm transition">إضافة مهمة جديدة</button>
+                    </div>
+
+                    <div id="tasksList" class="space-y-2"></div>
+                </section>
+
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        let currentUser = { name: '', role: '', isOwner: false };
+        let tickets = [];
+        let tasks = [];
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            currentUser.name = document.getElementById('adminName').value;
+            currentUser.role = document.getElementById('adminRole').value;
+            currentUser.isOwner = currentUser.role.includes('Owner');
+
+            document.getElementById('userDisplayName').innerText = currentUser.name;
+            document.getElementById('userDisplayRole').innerText = currentUser.role;
+
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+
+            if (!currentUser.isOwner) {
+                document.getElementById('ownerPanel').classList.add('opacity-50', 'pointer-events-none');
+            }
+        });
+
+        function addTicket() {
+            const user = document.getElementById('ticketUser').value;
+            const type = document.getElementById('ticketType').value;
+
+            if(!user) return alert('يرجى كتابة اسم العضو');
+
+            tickets.unshift({
+                admin: currentUser.name,
+                user: user,
+                type: type,
+                time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+            });
+            document.getElementById('ticketUser').value = '';
+            renderTickets();
+        }
+
+        function renderTickets() {
+            const tbody = document.getElementById('ticketsTableBody');
+            tbody.innerHTML = '';
+            tickets.forEach(t => {
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-700/50">
+                        <td class="p-2.5 font-bold text-indigo-400">${t.admin}</td>
+                        <td class="p-2.5">${t.user}</td>
+                        <td class="p-2.5"><span class="bg-slate-700 px-2 py-0.5 rounded text-xs">${t.type}</span></td>
+                        <td class="p-2.5 text-xs text-slate-400">${t.time}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('ticketCount').innerText = `${tickets.length} تكت`;
+        }
+
+        function addTask() {
+            const title = document.getElementById('taskTitle').value;
+            if(!title) return alert('اكتب عنوان المهمة');
+
+            tasks.unshift({ title: title, createdBy: currentUser.name });
+            document.getElementById('taskTitle').value = '';
+            renderTasks();
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('tasksList');
+            container.innerHTML = '';
+            tasks.forEach((t, i) => {
+                container.innerHTML += `
+                    <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700 flex justify-between items-center">
+                        <div>
+                            <p class="text-sm font-semibold">${t.title}</p>
+                            <span class="text-xs text-slate-500">بواسطة: ${t.createdBy}</span>
+                        </div>
+                        <button onclick="deleteTask(${i})" class="text-red-400 text-xs px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+            });
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            renderTasks();
+        }
+
+        function addRule() {
+            const ruleText = document.getElementById('newRuleInput').value;
+            if(!ruleText) return;
+            const ul = document.getElementById('rulesList');
+            const li = document.createElement('li');
+            li.innerText = ruleText;
+            ul.appendChild(li);
+            document.getElementById('newRuleInput').value = '';
+            alert('تم نشر القانون بنجاح!');
+        }
+
+        function grantPermission() {
+            const admin = document.getElementById('permAdminName').value;
+            if(!admin) return;
+            alert(`تم منح الصلاحيات للإداري: ${admin}`);
+            document.getElementById('permAdminName').value = '';
+        }
+
+        function addNewRole() {
+            const role = document.getElementById('newRoleTitle').value;
+            if(!role) return;
+            const select = document.getElementById('adminRole');
+            const option = document.createElement('option');
+            option.value = role;
+            option.innerText = role;
+            select.appendChild(option);
+            document.getElementById('newRoleTitle').value = '';
+            alert(`تمت إضافة رتبة (${role})!`);
+        }
+    </script>
+</body>
+</html>
+
